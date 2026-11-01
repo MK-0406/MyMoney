@@ -117,7 +117,7 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
   Future<void> _addNewCategory() async {
     XFile? pickedImage;
     _nameController.clear();
-    String currentType = _tabController.index == 0 ? 'expense' : 'income';
+    String currentType = _tabController.index == 0 ? 'income' : 'expense';
 
     showDialog(
       context: context,
@@ -189,7 +189,7 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.category_outlined, size: 64, color: Colors.purpleAccent.withOpacity(0.1)),
+            Icon(Icons.category_outlined, size: 64, color: Colors.purpleAccent.withValues(alpha: 0.1)),
             const SizedBox(height: 16),
             Text("No $type categories found", style: const TextStyle(color: Colors.grey)),
           ],
@@ -211,13 +211,13 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               leading: data['imageBase64'] != null
                   ? CircleAvatar(radius: 24, backgroundImage: MemoryImage(base64Decode(data['imageBase64'])))
-                  : CircleAvatar(radius: 24, backgroundColor: Colors.purpleAccent.withOpacity(0.05), child: const Icon(Icons.category_rounded, color: Colors.purpleAccent)),
+                  : CircleAvatar(radius: 24, backgroundColor: Colors.purpleAccent.withValues(alpha: 0.05), child: const Icon(Icons.category_rounded, color: Colors.purpleAccent)),
               title: Text(data['name'] ?? 'Unknown', style: const TextStyle(fontWeight: FontWeight.bold)),
               trailing: Text(
                 "RM ${balance.abs().toStringAsFixed(2)}",
@@ -276,16 +276,16 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
                 color: Colors.purpleAccent,
                 borderRadius: BorderRadius.circular(24),
                 gradient: const LinearGradient(colors: [Color(0xFF8E24AA), Color(0xFFD81B60)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                boxShadow: [BoxShadow(color: Colors.purpleAccent.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+                boxShadow: [BoxShadow(color: Colors.purpleAccent.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
               ),
               child: IntrinsicHeight(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     _buildSummaryItem("TOTAL", incomeTotal - expenseTotal, Colors.white),
-                    VerticalDivider(color: Colors.white.withOpacity(0.3), thickness: 1, indent: 4, endIndent: 4),
+                    VerticalDivider(color: Colors.white.withValues(alpha: 0.3), thickness: 1, indent: 4, endIndent: 4),
                     _buildSummaryItem("INCOME", incomeTotal, Colors.white),
-                    VerticalDivider(color: Colors.white.withOpacity(0.3), thickness: 1, indent: 4, endIndent: 4),
+                    VerticalDivider(color: Colors.white.withValues(alpha: 0.3), thickness: 1, indent: 4, endIndent: 4),
                     _buildSummaryItem("EXPENSE", expenseTotal, Colors.white),
                   ],
                 ),
@@ -296,10 +296,10 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               height: 50,
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)]),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10)]),
               child: TabBar(
                 controller: _tabController,
-                indicator: BoxDecoration(borderRadius: BorderRadius.circular(10), color: Colors.purpleAccent.withOpacity(0.1)),
+                indicator: BoxDecoration(borderRadius: BorderRadius.circular(10), color: Colors.purpleAccent.withValues(alpha: 0.1)),
                 labelColor: Colors.purpleAccent,
                 unselectedLabelColor: Colors.grey,
                 labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -339,7 +339,7 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: TextStyle(fontSize: 10, color: color.withOpacity(0.7), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+        Text(label, style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.7), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
         const SizedBox(height: 4),
         Text("RM ${amount.toStringAsFixed(2)}", style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 15)),
       ],
