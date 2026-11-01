@@ -1,0 +1,34 @@
+name: my_money
+description: A minimal Flutter app for MyMoney
+version: 0.1.0
+publish_to: "none"
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  intl: ^0.18.1
+  firebase_core: ^4.2.0
+  cloud_firestore: ^6.0.3
+  firebase_auth: ^6.1.1
+  google_sign_in: ^6.3.0
+  image_picker: ^1.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/logo.png"
+  min_sdk_android: 21
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
