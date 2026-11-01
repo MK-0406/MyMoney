@@ -181,6 +181,71 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
     );
   }
 
+  Future<void> _editCategory(String catId, String name, String? existingImage) async {
+    String? pickedImage = existingImage;
+    _nameController.text = name;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: Text("Edit Category", style: const TextStyle(fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    final image = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 100, maxHeight: 100, imageQuality: 50);
+                    if (image != null) {
+                      String bytes = base64Encode(await image.readAsBytes());
+                      setDialogState(() => pickedImage = bytes);
+                    }
+                  },
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.grey.shade100,
+                    backgroundImage: pickedImage != null ? MemoryImage(base64Decode(pickedImage!)) : null,
+                    child: pickedImage == null ? const Icon(Icons.add_a_photo, color: Colors.grey) : null,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      hintText: "Category Name",
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    )
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.purpleAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                onPressed: () async {
+                  if (_nameController.text.isEmpty) return;
+
+                  await FirebaseFirestore.instance.collection('categories').doc(user!.uid).collection('category').doc(catId).update({
+                    'name': _nameController.text.trim(),
+                    'imageBase64': pickedImage,
+                    'deleted': false,
+                  });
+                  Navigator.pop(context);
+                  _initializeData();
+                },
+                child: const Text("Save"),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildCategoryList(String type) {
     final filtered = categoriesData?.where((cat) => cat['type'] == type).toList() ?? [];
 
@@ -223,6 +288,9 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
                 "RM ${balance.abs().toStringAsFixed(2)}",
                 style: TextStyle(fontWeight: FontWeight.bold, color: balance >= 0 ? Colors.green : Colors.red, fontSize: 16),
               ),
+              onTap: () {
+                _editCategory(data['id'], data['name'], data['imageBase64']);
+              },
             ),
           );
         },
