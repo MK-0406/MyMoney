@@ -14,21 +14,6 @@ class SuperCategoriesPage extends StatefulWidget {
 class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
   final user = FirebaseAuth.instance.currentUser;
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: 50),
-          Icon(Icons.auto_awesome_motion_rounded, size: 80, color: Colors.purpleAccent.withOpacity(0.1)),
-          const SizedBox(height: 16),
-          const Text("No Category Groups yet", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-          const Text("Create a group to combine categories", style: TextStyle(color: Colors.grey)),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (user == null) return const Center(child: Text("Please sign in"));
@@ -84,6 +69,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                       .collectionGroup('record')
                       .where('userId', isEqualTo: user!.uid)
                       .where('deleted', isEqualTo: false)
+                      .orderBy('date')
                       .snapshots(),
                   builder: (context, recordSnapshot) {
                     if (recordSnapshot.connectionState == ConnectionState.waiting && !recordSnapshot.hasData) {
@@ -153,7 +139,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                               end: Alignment.bottomRight,
                             ),
                             boxShadow: [
-                              BoxShadow(color: Colors.deepPurple.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))
+                              BoxShadow(color: Colors.deepPurple.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))
                             ],
                           ),
                           child: Column(
@@ -163,7 +149,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                                 "TOTAL BALANCE",
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Colors.white.withOpacity(0.7),
+                                  color: Colors.white.withValues(alpha: 0.7),
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 1.2,
                                 ),
@@ -190,14 +176,14 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 16),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.6),
+                                    color: Colors.white.withValues(alpha: 0.6),
                                     borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                                    border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
                                   ),
                                   child: ListTile(
                                     leading: Container(
                                       padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(color: Colors.grey.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+                                      decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
                                       child: const Icon(Icons.layers_clear_rounded, color: Colors.grey, size: 20),
                                     ),
                                     title: const Text("Ungrouped", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.grey)),
@@ -238,7 +224,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(24),
-                                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
                                 ),
                                 child: Theme(
                                   data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -250,7 +236,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                                           )
                                         : Container(
                                             padding: const EdgeInsets.all(10),
-                                            decoration: BoxDecoration(color: Colors.purpleAccent.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                                            decoration: BoxDecoration(color: Colors.purpleAccent.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
                                             child: const Icon(Icons.folder_copy_rounded, color: Colors.purpleAccent, size: 20),
                                           ),
                                     title: Text(groupData['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
