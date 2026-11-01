@@ -118,7 +118,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                     return Column(
                       children: [
                         const Padding(
-                          padding: EdgeInsets.only(top: 24, bottom: 20),
+                          padding: EdgeInsets.only(top: 24, bottom: 12),
                           child: Text(
                             "Category Groups",
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, letterSpacing: -0.5),
@@ -127,9 +127,9 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
 
                         // --- Summary Card ---
                         Container(
-                          margin: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.all(14),
                           width: double.infinity,
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: Colors.deepPurple,
                             borderRadius: BorderRadius.circular(24),
@@ -148,7 +148,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                               Text(
                                 "TOTAL BALANCE",
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 8,
                                   color: Colors.white.withValues(alpha: 0.7),
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 1.2,
@@ -158,7 +158,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                               Text(
                                 "RM ${(globalIncome - globalExpense).toStringAsFixed(2)}",
                                 style: const TextStyle(
-                                  fontSize: 24,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
