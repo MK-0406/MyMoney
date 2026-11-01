@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -199,7 +198,19 @@ class _CreateSuperCategoryPageState extends State<CreateSuperCategoryPage> {
                 }
 
                 final sortedCategories = categories.toList();
-                sortedCategories.sort((a, b) => (a['type'] ?? '').compareTo(b['type'] ?? ''));
+                sortedCategories.sort((a, b) {
+                  final dataA = a.data() as Map<String, dynamic>;
+                  final dataB = b.data() as Map<String, dynamic>;
+                  
+                  final typeA = (dataA['type'] ?? '').toString();
+                  final typeB = (dataB['type'] ?? '').toString();
+                  final typeCompare = typeA.compareTo(typeB);
+                  if (typeCompare != 0) return typeCompare;
+
+                  final nameA = (dataA['name'] ?? '').toString();
+                  final nameB = (dataB['name'] ?? '').toString();
+                  return nameA.toLowerCase().compareTo(nameB.toLowerCase());
+                });
 
                 return ListView.builder(
                   shrinkWrap: true,
@@ -211,7 +222,7 @@ class _CreateSuperCategoryPageState extends State<CreateSuperCategoryPage> {
                     final isSelected = selectedCatIds.contains(cat.id);
                     final isExpense = data['type'] == 'expense';
 
-                    bool showHeader = index == 0 || sortedCategories[index - 1]['type'] != data['type'];
+                    bool showHeader = index == 0 || (sortedCategories[index - 1].data() as Map<String, dynamic>)['type'] != data['type'];
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,7 +240,7 @@ class _CreateSuperCategoryPageState extends State<CreateSuperCategoryPage> {
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 5)],
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 5)],
                           ),
                           child: CheckboxListTile(
                             value: isSelected,
