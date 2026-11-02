@@ -131,8 +131,8 @@ class _RecordsPageState extends State<RecordsPage> {
 
   Widget _buildRecordCard(String docId, Map<String, dynamic> record, Map<String, String> categoryImages) {
     String type = record['type'] ?? 'expense';
-    String categoryName = categoryList[record['categoryId']] ?? 'General';
-    String? categoryImage = categoryImages[categoryName];
+    record['category'] = categoryList[record['categoryId']] ?? 'General';
+    String? categoryImage = categoryImages[record['category']];
     bool isTransfer = type == 'transfer';
     record['account'] = accountList[record['accountId']];
     isTransfer ? record['toAccount'] = accountList[record['toAccountId']] : null;
@@ -167,7 +167,7 @@ class _RecordsPageState extends State<RecordsPage> {
                     decoration: BoxDecoration(color: Colors.deepPurple.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
                     child: const Icon(Icons.category_rounded, color: Colors.deepPurple),
                   )),
-        title: Text(isTransfer ? "${record['account']} → ${record['toAccount']}" : categoryName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+        title: Text(isTransfer ? "${record['account']} → ${record['toAccount']}" : record['category'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
         subtitle: Text(isTransfer ? "Transfer" : (record['account'] ?? 'Cash'), style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
         trailing: Text(
           "RM ${((record['amount'] ?? 0) as num).toDouble().toStringAsFixed(2)}",
