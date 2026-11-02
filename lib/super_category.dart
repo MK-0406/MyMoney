@@ -22,7 +22,6 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
       backgroundColor: const Color(0xFFF8F9FE),
       body: SafeArea(
         child: StreamBuilder<QuerySnapshot>(
-          // 1. Fetch Categories first to create a Name-to-ID lookup map
           stream: FirebaseFirestore.instance
               .collection('categories')
               .doc(user!.uid)
@@ -43,7 +42,6 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
             }
 
             return StreamBuilder<QuerySnapshot>(
-              // 2. Fetch Super Categories (Groups)
               stream: FirebaseFirestore.instance
                   .collection('super_categories')
                   .doc(user!.uid)
@@ -55,7 +53,6 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                // FIX: Sort groups manually in code to avoid Firestore Index requirement
                 final groups = (groupSnapshot.data?.docs ?? []).toList();
                 groups.sort((a, b) {
                   String nameA = (a.data() as Map)['name'] ?? '';
@@ -64,7 +61,6 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                 });
 
                 return StreamBuilder<QuerySnapshot>(
-                  // 3. Fetch Records for calculations
                   stream: FirebaseFirestore.instance
                       .collectionGroup('record')
                       .where('userId', isEqualTo: user!.uid)
@@ -78,7 +74,6 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
 
                     final allRecords = recordSnapshot.data?.docs ?? [];
 
-                    // --- CALCULATION LOGIC ---
                     double globalIncome = 0;
                     double globalExpense = 0;
                     double ungroupedNetTotal = 0;
@@ -103,7 +98,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
 
                       final amt = (r['amount'] ?? 0).toDouble();
                       final catId = r['categoryId'];
-                      final catName = r['category'];
+                      final catName = categoryIdToName[catId];
 
                       if (type == 'expense') globalExpense += amt;
                       else if (type == 'income') globalIncome += amt;
@@ -207,7 +202,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
 
                               final recordsInGroup = allRecords.where((doc) {
                                 final r = doc.data() as Map<String, dynamic>;
-                                return subCatIds.contains(r['categoryId']) || subCatNames.contains(r['category']);
+                                return subCatIds.contains(r['categoryId']) || subCatNames.contains(categoryIdToName[r['categoryId']]);
                               }).toList();
 
                               double groupTotal = 0;
@@ -255,7 +250,7 @@ class _SuperCategoriesPageState extends State<SuperCategoriesPage> {
                                           final r = doc.data() as Map<String, dynamic>;
                                           return ListTile(
                                             dense: true,
-                                            title: Text(r['category'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
+                                            title: Text(categoryIdToName[r['categoryId']] ?? '', style: const TextStyle(fontWeight: FontWeight.w600)),
                                             subtitle: Text(r['dateStr'] ?? ''),
                                             trailing: Text(
                                                 "RM ${(r['amount'] ?? 0).toStringAsFixed(2)}",
