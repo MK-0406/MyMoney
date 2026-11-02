@@ -203,6 +203,7 @@ class _AccountsPageState extends State<AccountsPage> {
               .collection('accounts')
               .doc(user!.uid)
               .collection('account')
+              .where('deleted', isEqualTo: false)
               .orderBy('name')
               .snapshots(),
           builder: (context, accountSnapshot) {
