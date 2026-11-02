@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+
 
 class AccountsPage extends StatefulWidget {
   const AccountsPage({super.key});
@@ -12,6 +15,75 @@ class AccountsPage extends StatefulWidget {
 
 class _AccountsPageState extends State<AccountsPage> {
   final user = FirebaseAuth.instance.currentUser;
+  final ImagePicker _picker = ImagePicker();
+  final TextEditingController _nameController = TextEditingController();
+
+  Future<void> _addNewAccount() async {
+    XFile? pickedImage;
+    _nameController.clear();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: Text("New Account", style: const TextStyle(fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    final image = await _picker.pickImage(source: ImageSource.gallery, maxWidth: 100, maxHeight: 100, imageQuality: 50);
+                    if (image != null) setDialogState(() => pickedImage = image);
+                  },
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.grey.shade100,
+                    backgroundImage: pickedImage != null ? FileImage(File(pickedImage!.path)) : null,
+                    child: pickedImage == null ? const Icon(Icons.add_a_photo, color: Colors.grey) : null,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      hintText: "Account Name",
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    )
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.purpleAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                onPressed: () async {
+                  if (_nameController.text.isEmpty) return;
+                  String? base64;
+                  if (pickedImage != null) base64 = base64Encode(await pickedImage!.readAsBytes());
+
+                  await FirebaseFirestore.instance.collection('accounts').doc(user!.uid).collection('account').add({
+                    'name': _nameController.text.trim(),
+                    'imageBase64': base64,
+                    'createdAt': FieldValue.serverTimestamp(),
+                    'deleted': false,
+                    'balance': 0,
+                    'totalExpense': 0,
+                    'totalIncome': 0
+                  });
+                  Navigator.pop(context);
+                },
+                child: const Text("Save"),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +128,6 @@ class _AccountsPageState extends State<AccountsPage> {
                   ),
                 ),
 
-                // --- Global Summary Section ---
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   padding: const EdgeInsets.all(20),
@@ -65,13 +136,13 @@ class _AccountsPageState extends State<AccountsPage> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 15,
                         offset: const Offset(0, 5),
                       )
                     ],
                   ),
-                  // FIX: Added IntrinsicHeight to prevent display errors on strict devices
+
                   child: IntrinsicHeight(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -105,7 +176,7 @@ class _AccountsPageState extends State<AccountsPage> {
                                 borderRadius: BorderRadius.circular(20),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.02),
+                                    color: Colors.black.withValues(alpha: 0.02),
                                     blurRadius: 10,
                                     offset: const Offset(0, 4),
                                   )
@@ -139,6 +210,17 @@ class _AccountsPageState extends State<AccountsPage> {
               ],
             );
           },
+        ),
+      ),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 100),
+        child: FloatingActionButton.extended(
+          heroTag: 'accounts_fab',
+          onPressed: _addNewAccount,
+          backgroundColor: Colors.purple,
+          icon: const Icon(Icons.add_rounded, color: Colors.white),
+          label: const Text("New Account", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
       ),
     );
