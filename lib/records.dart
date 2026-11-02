@@ -18,9 +18,11 @@ class _RecordsPageState extends State<RecordsPage> {
   late String monthSelected;
   late String monthIndex;
 
-  // Filter State
   String? selectedAccount;
   String? selectedCategory;
+
+  Map<String, String> accountList = {};
+  Map<String, String> categoryList = {};
 
   @override
   void initState() {
@@ -34,7 +36,6 @@ class _RecordsPageState extends State<RecordsPage> {
     monthIndex = selectedDate.month.toString();
   }
 
-  // --- DELETE FEATURE ---
   Future<void> _deleteRecord(String docId, Map<String, dynamic> data) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -119,7 +120,7 @@ class _RecordsPageState extends State<RecordsPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const SizedBox(height: 50),
-          Icon(Icons.receipt_long_rounded, size: 80, color: Colors.deepPurple.withOpacity(0.1)),
+          Icon(Icons.receipt_long_rounded, size: 80, color: Colors.deepPurple.withValues(alpha: 0.1)),
           const SizedBox(height: 16),
           const Text("No records match your filters", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.grey)),
           const Text("Try changing your selection", style: TextStyle(color: Colors.grey)),
@@ -130,16 +131,18 @@ class _RecordsPageState extends State<RecordsPage> {
 
   Widget _buildRecordCard(String docId, Map<String, dynamic> record, Map<String, String> categoryImages) {
     String type = record['type'] ?? 'expense';
-    String categoryName = record['category'] ?? 'General';
+    String categoryName = categoryList[record['categoryId']] ?? 'General';
     String? categoryImage = categoryImages[categoryName];
     bool isTransfer = type == 'transfer';
+    record['account'] = accountList[record['accountId']];
+    isTransfer ? record['toAccount'] = accountList[record['toAccountId']] : null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -148,7 +151,7 @@ class _RecordsPageState extends State<RecordsPage> {
         leading: isTransfer
             ? Container(
                 width: 44, height: 44,
-                decoration: BoxDecoration(color: Colors.blue.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
                 child: const Icon(Icons.swap_horiz_rounded, color: Colors.blue),
               )
             : (categoryImage != null && categoryImage.isNotEmpty
@@ -161,7 +164,7 @@ class _RecordsPageState extends State<RecordsPage> {
                   )
                 : Container(
                     width: 44, height: 44,
-                    decoration: BoxDecoration(color: Colors.deepPurple.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(color: Colors.deepPurple.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
                     child: const Icon(Icons.category_rounded, color: Colors.deepPurple),
                   )),
         title: Text(isTransfer ? "${record['account']} → ${record['toAccount']}" : categoryName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
@@ -190,31 +193,33 @@ class _RecordsPageState extends State<RecordsPage> {
           stream: FirebaseFirestore.instance.collection('categories').doc(user.uid).collection('category').orderBy('name').snapshots(),
           builder: (context, catSnapshot) {
             Map<String, String> categoryImages = {};
-            List<String> categoryList = ["All"];
+            List<String> categoryNameList = ["All"];
             if (catSnapshot.hasData) {
               for (var doc in catSnapshot.data!.docs) {
                 final data = doc.data() as Map<String, dynamic>;
                 if (data['name'] != null) {
-                  categoryList.add(data['name']);
+                  categoryNameList.add(data['name']);
+                  categoryList[doc.id] = data['name'];
                   if (data['imageBase64'] != null) categoryImages[data['name']] = data['imageBase64'];
                 }
               }
             }
 
             return StreamBuilder<QuerySnapshot>(
-              // Fetch Accounts
               stream: FirebaseFirestore.instance.collection('accounts').doc(user.uid).collection('account').orderBy('name').snapshots(),
               builder: (context, accSnapshot) {
-                List<String> accountList = ["All"];
+                List<String> accountNameList = ["All"];
                 if (accSnapshot.hasData) {
                   for (var doc in accSnapshot.data!.docs) {
                     final data = doc.data() as Map<String, dynamic>;
-                    if (data['name'] != null) accountList.add(data['name']);
+                    if (data['name'] != null) {
+                      accountNameList.add(data['name']);
+                      accountList[doc.id] = data['name'];
+                    };
                   }
                 }
 
                 return StreamBuilder<QuerySnapshot>(
-                  // Fetch Records
                   stream: FirebaseFirestore.instance
                       .collection('records')
                       .doc(user.uid)
@@ -229,11 +234,10 @@ class _RecordsPageState extends State<RecordsPage> {
                   builder: (context, snapshot) {
                     List<DocumentSnapshot> allRecords = snapshot.data?.docs ?? [];
                     
-                    // Apply Code-side filtering
                     List<DocumentSnapshot> filteredRecords = allRecords.where((doc) {
                       final data = doc.data() as Map<String, dynamic>;
-                      bool accountMatch = selectedAccount == null || selectedAccount == "All" || data['account'] == selectedAccount || data['toAccount'] == selectedAccount;
-                      bool categoryMatch = selectedCategory == null || selectedCategory == "All" || data['category'] == selectedCategory;
+                      bool accountMatch = selectedAccount == null || selectedAccount == "All" || accountList[data['accountId']] == selectedAccount || accountList[data['toAccountId']] == selectedAccount;
+                      bool categoryMatch = selectedCategory == null || selectedCategory == "All" || categoryList[data['categoryId']] == selectedCategory;
                       return accountMatch && categoryMatch;
                     }).toList();
 
@@ -248,7 +252,6 @@ class _RecordsPageState extends State<RecordsPage> {
                     return Column(
                       children: [
                         const SizedBox(height: 16),
-                        // Month Navigation
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Row(
@@ -261,27 +264,25 @@ class _RecordsPageState extends State<RecordsPage> {
                           ),
                         ),
                         
-                        // --- FILTER ROW ---
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           child: Row(
                             children: [
-                              _buildFilterChip("Account: ${selectedAccount ?? 'All'}", () => _showFilterDialog("Account", accountList, (val) => setState(() => selectedAccount = val))),
+                              _buildFilterChip("Account: ${selectedAccount ?? 'All'}", () => _showFilterDialog("Account", accountNameList, (val) => setState(() => selectedAccount = val))),
                               const SizedBox(width: 8),
-                              _buildFilterChip("Category: ${selectedCategory ?? 'All'}", () => _showFilterDialog("Category", categoryList, (val) => setState(() => selectedCategory = val))),
+                              _buildFilterChip("Category: ${selectedCategory ?? 'All'}", () => _showFilterDialog("Category", categoryNameList, (val) => setState(() => selectedCategory = val))),
                             ],
                           ),
                         ),
 
                         const SizedBox(height: 8),
-                        // Summary Card
                         Container(
                           margin: const EdgeInsets.symmetric(horizontal: 16),
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             color: Colors.deepPurple, borderRadius: BorderRadius.circular(24),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 15, offset: const Offset(0, 8))],
+                            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 15, offset: const Offset(0, 8))],
                             gradient: const LinearGradient(colors: [Color(0xFF673AB7), Color(0xFF512DA8)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                           ),
                           child: IntrinsicHeight(
@@ -289,9 +290,9 @@ class _RecordsPageState extends State<RecordsPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 _buildSummaryItem("EXPENSE", expense, Colors.white),
-                                VerticalDivider(color: Colors.white.withOpacity(0.2), thickness: 1, indent: 4, endIndent: 4),
+                                VerticalDivider(color: Colors.white.withValues(alpha: 0.2), thickness: 1, indent: 4, endIndent: 4),
                                 _buildSummaryItem("INCOME", income, Colors.white),
-                                VerticalDivider(color: Colors.white.withOpacity(0.2), thickness: 1, indent: 4, endIndent: 4),
+                                VerticalDivider(color: Colors.white.withValues(alpha: 0.2), thickness: 1, indent: 4, endIndent: 4),
                                 _buildSummaryItem("BALANCE", income - expense, Colors.white),
                               ],
                             ),
@@ -348,7 +349,7 @@ class _RecordsPageState extends State<RecordsPage> {
     return ActionChip(
       onPressed: onTap,
       backgroundColor: Colors.white,
-      side: BorderSide(color: Colors.deepPurple.withOpacity(0.1)),
+      side: BorderSide(color: Colors.deepPurple.withValues(alpha: 0.1)),
       label: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
       avatar: const Icon(Icons.filter_list_rounded, size: 14, color: Colors.deepPurple),
     );
@@ -380,7 +381,7 @@ class _RecordsPageState extends State<RecordsPage> {
 
   Widget _buildSummaryItem(String label, double amount, Color color) {
     return Column(mainAxisSize: MainAxisSize.min, children: [
-      Text(label, style: TextStyle(fontSize: 10, color: color.withOpacity(0.7), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+      Text(label, style: TextStyle(fontSize: 10, color: color.withValues(alpha: 0.7), fontWeight: FontWeight.bold, letterSpacing: 0.5)),
       const SizedBox(height: 4),
       Text("RM ${amount.toStringAsFixed(2)}", style: TextStyle(fontWeight: FontWeight.bold, color: color, fontSize: 14)),
     ]);
