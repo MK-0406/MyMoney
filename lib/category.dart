@@ -246,6 +246,50 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
     );
   }
 
+  Future<void> _deleteRecord(String docId, Map<String, dynamic> data) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    bool deletable = data['balance'] == 0;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("Delete Category", style: TextStyle(fontWeight: FontWeight.bold)),
+        content: deletable ? Text("Are you sure to remove this category?") : Text("Please make sure there is no record under this category before deleting."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel", style: TextStyle(color: Colors.grey))),
+          TextButton(
+            onPressed: () => deletable ? Navigator.pop(context, true) : null,
+            child: Text("Delete", style: TextStyle(color: deletable ? Colors.red : Colors.grey, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final batch = FirebaseFirestore.instance.batch();
+        final recordRef = FirebaseFirestore.instance
+            .collection('categories')
+            .doc(user.uid)
+            .collection('category')
+            .doc(docId);
+
+        batch.update(recordRef, {'deleted': true});
+
+        await batch.commit();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Category deleted successfully"), backgroundColor: Colors.purpleAccent,));
+        }
+        _initializeData();
+      } catch (e) {
+        debugPrint("Delete Error: $e");
+      }
+    }
+  }
+
   Widget _buildCategoryList(String type) {
     final filtered = categoriesData?.where((cat) => cat['type'] == type).toList() ?? [];
 
@@ -291,6 +335,7 @@ class _CategoriesPageState extends State<CategoriesPage> with SingleTickerProvid
               onTap: () {
                 _editCategory(data['id'], data['name'], data['imageBase64']);
               },
+              onLongPress: () {_deleteRecord(data['id'], data);},
             ),
           );
         },
