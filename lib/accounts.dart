@@ -148,6 +148,49 @@ class _AccountsPageState extends State<AccountsPage> {
     );
   }
 
+  Future<void> _deleteAccount(String docId, Map<String, dynamic> data) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    bool deletable = data['balance'] == 0 && data['totalExpense'] == 0 && data['totalIncome'] == 0;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("Delete Account", style: TextStyle(fontWeight: FontWeight.bold)),
+        content: deletable ? Text("Are you sure to remove this account?") : Text("Please make sure there is no record under this account before deleting."),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Cancel", style: TextStyle(color: Colors.grey))),
+          TextButton(
+            onPressed: () => deletable ? Navigator.pop(context, true) : null,
+            child: Text("Delete", style: TextStyle(color: deletable ? Colors.red : Colors.grey, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final batch = FirebaseFirestore.instance.batch();
+        final recordRef = FirebaseFirestore.instance
+            .collection('accounts')
+            .doc(user.uid)
+            .collection('account')
+            .doc(docId);
+
+        batch.update(recordRef, {'deleted': true});
+
+        await batch.commit();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Account deleted successfully"), backgroundColor: Colors.purpleAccent,));
+        }
+      } catch (e) {
+        debugPrint("Delete Error: $e");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (user == null) return const Center(child: Text("Please sign in"));
@@ -268,6 +311,9 @@ class _AccountsPageState extends State<AccountsPage> {
                                 ),
                                 onTap: () {
                                   _editAccount(data['id'], name, imageBase64);
+                                },
+                                onLongPress: () {
+                                  _deleteAccount(data['id'], data);
                                 },
                               ),
                             );
