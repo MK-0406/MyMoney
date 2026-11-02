@@ -132,7 +132,7 @@ class _RecordsPageState extends State<RecordsPage> {
   Widget _buildRecordCard(String docId, Map<String, dynamic> record, Map<String, String> categoryImages) {
     String type = record['type'] ?? 'expense';
     record['category'] = categoryList[record['categoryId']] ?? 'General';
-    String? categoryImage = categoryImages[record['category']];
+    record['categoryImage'] = categoryImages[record['category']];
     bool isTransfer = type == 'transfer';
     record['account'] = accountList[record['accountId']];
     isTransfer ? record['toAccount'] = accountList[record['toAccountId']] : null;
@@ -154,12 +154,12 @@ class _RecordsPageState extends State<RecordsPage> {
                 decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(12)),
                 child: const Icon(Icons.swap_horiz_rounded, color: Colors.blue),
               )
-            : (categoryImage != null && categoryImage.isNotEmpty
+            : (record['categoryImage'] != null && record['categoryImage'].isNotEmpty
                 ? Container(
                     width: 44, height: 44,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      image: DecorationImage(image: MemoryImage(base64Decode(categoryImage)), fit: BoxFit.cover),
+                      image: DecorationImage(image: MemoryImage(base64Decode(record['categoryImage'])), fit: BoxFit.cover),
                     ),
                   )
                 : Container(
@@ -189,7 +189,6 @@ class _RecordsPageState extends State<RecordsPage> {
       backgroundColor: const Color(0xFFF8F9FE),
       body: SafeArea(
         child: StreamBuilder<QuerySnapshot>(
-          // Fetch Categories
           stream: FirebaseFirestore.instance.collection('categories').doc(user.uid).collection('category').where('deleted', isEqualTo: false).orderBy('name').snapshots(),
           builder: (context, catSnapshot) {
             Map<String, String> categoryImages = {};
