@@ -190,7 +190,7 @@ class _RecordsPageState extends State<RecordsPage> {
       body: SafeArea(
         child: StreamBuilder<QuerySnapshot>(
           // Fetch Categories
-          stream: FirebaseFirestore.instance.collection('categories').doc(user.uid).collection('category').orderBy('name').snapshots(),
+          stream: FirebaseFirestore.instance.collection('categories').doc(user.uid).collection('category').where('deleted', isEqualTo: false).orderBy('name').snapshots(),
           builder: (context, catSnapshot) {
             Map<String, String> categoryImages = {};
             List<String> categoryNameList = ["All"];
@@ -206,7 +206,7 @@ class _RecordsPageState extends State<RecordsPage> {
             }
 
             return StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('accounts').doc(user.uid).collection('account').orderBy('name').snapshots(),
+              stream: FirebaseFirestore.instance.collection('accounts').doc(user.uid).collection('account').where('deleted', isEqualTo: false).orderBy('name').snapshots(),
               builder: (context, accSnapshot) {
                 List<String> accountNameList = ["All"];
                 if (accSnapshot.hasData) {
