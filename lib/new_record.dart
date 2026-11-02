@@ -129,7 +129,7 @@ class _CreateRecordPageState extends State<CreateRecordPage> {
     final subCollection = isAccount ? 'account' : 'category';
     
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection(collection).doc(user!.uid).collection(subCollection).orderBy("name").snapshots(),
+      stream: FirebaseFirestore.instance.collection(collection).doc(user!.uid).collection(subCollection).where('deleted', isEqualTo: false).orderBy("name").snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
         final docs = snapshot.data!.docs.where((doc) {
@@ -344,7 +344,7 @@ class _CreateRecordPageState extends State<CreateRecordPage> {
 
   Widget _typeBtn(String label, String type) {
     bool isSelected = recordType == type;
-    return Expanded(child: GestureDetector(onTap: () => setState(() => recordType = type), child: Container(padding: const EdgeInsets.symmetric(vertical: 10), decoration: BoxDecoration(color: isSelected ? Colors.white : Colors.transparent, borderRadius: BorderRadius.circular(10), boxShadow: isSelected ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))] : []), child: Center(child: Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? Colors.deepPurple : Colors.grey.shade600))))));
+    return Expanded(child: GestureDetector(onTap: () => setState(() => recordType = type), child: Container(padding: const EdgeInsets.symmetric(vertical: 10), decoration: BoxDecoration(color: isSelected ? Colors.white : Colors.transparent, borderRadius: BorderRadius.circular(10), boxShadow: isSelected ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))] : []), child: Center(child: Text(label, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? Colors.deepPurple : Colors.grey.shade600))))));
   }
 
   Widget _buildSelector(String label, String value, IconData icon, VoidCallback onTap) {
