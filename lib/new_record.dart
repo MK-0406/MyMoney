@@ -402,6 +402,25 @@ class _CreateRecordPageState extends State<CreateRecordPage> {
               }
               batch.set(recordRef, recordData);
 
+              final oldDate = widget.initialData?['date'];
+              final oldId = widget.recordId;
+              if (oldId != null) {
+                if (oldDate.toDate().year != dateSelected.year || oldDate.toDate().month != dateSelected.month) {
+                  final oldAccRef = FirebaseFirestore.instance
+                      .collection('records')
+                      .doc(user.uid)
+                      .collection('year')
+                      .doc(oldDate.toDate().year.toString())
+                      .collection('month')
+                      .doc(oldDate.toDate().month.toString())
+                      .collection('record')
+                      .doc(oldId);
+                  batch.update(oldAccRef, {
+                    'deleted': true
+                  });
+                }
+              }
+
               // APPLY NEW AGGREGATION
               final accRef = FirebaseFirestore.instance
                   .collection('accounts')
