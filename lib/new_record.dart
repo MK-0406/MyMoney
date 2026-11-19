@@ -306,7 +306,17 @@ class _CreateRecordPageState extends State<CreateRecordPage> {
             icon: const Icon(Icons.check, color: Colors.deepPurple, size: 28),
             onPressed: () async {
               final user = FirebaseAuth.instance.currentUser;
-              if (user == null || accountIdSelected.isEmpty) return;
+              if (user == null) return;
+              if (_amountController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text("Enter amount")));
+                return;
+              }
+              if (accountIdSelected.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text("Select source account")));
+                return;
+              }
               if (recordType == 'transfer' && toAccountIdSelected.isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Text("Select destination account")));
@@ -316,6 +326,11 @@ class _CreateRecordPageState extends State<CreateRecordPage> {
                   accountIdSelected == toAccountIdSelected) {
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                     content: Text("Cannot transfer to the same account")));
+                return;
+              }
+              if (categoryIdSelected.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text("Select category")));
                 return;
               }
 
